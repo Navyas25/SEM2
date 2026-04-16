@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 5
+
+struct Patient {
+    int id;
+    char name[50];
+    int age;
+};
+
+struct Patient queue[MAX];
+int front = -1, rear = -1;
+
+// Add patient
+void enqueue() {
+    if (rear == MAX - 1) {
+        printf("Queue is full! No more patients can be added.\n");
+        return;
+    }
+
+    struct Patient p;
+
+    printf("Enter Patient ID: ");
+    scanf("%d", &p.id);
+
+    printf("Enter Name: ");
+    scanf(" %[^\n]", p.name);
+
+    printf("Enter Age: ");
+    scanf("%d", &p.age);
+
+    if (front == -1) front = 0;
+
+    rear++;
+    queue[rear] = p;
+
+    printf("Patient added successfully!\n");
+}
+
+// Serve patient
+void dequeue() {
+    if (front == -1 || front > rear) {
+        printf("No patients in queue.\n");
+        return;
+    }
+
+    printf("Serving Patient:\n");
+    printf("ID: %d | Name: %s | Age: %d\n",
+           queue[front].id,
+           queue[front].name,
+           queue[front].age);
+
+    front++;
+}
+
+// Display queue
+void display() {
+    if (front == -1 || front > rear) {
+        printf("Queue is empty.\n");
+        return;
+    }
+
+    printf("\n--- Patient Queue ---\n");
+    for (int i = front; i <= rear; i++) {
+        printf("ID: %d | Name: %s | Age: %d\n",
+               queue[i].id,
+               queue[i].name,
+               queue[i].age);
+    }
+}
+
+// Peek
+void peek() {
+    if (front == -1 || front > rear) {
+        printf("No patients in queue.\n");
+        return;
+    }
+
+    printf("Next Patient:\n");
+    printf("ID: %d | Name: %s | Age: %d\n",
+           queue[front].id,
+           queue[front].name,
+           queue[front].age);
+}
+
+int main() {
+    int choice;
+
+    while (1) {
+        printf("\n===== Hospital Queue System =====\n");
+        printf("1. Add Patient\n");
+        printf("2. Serve Patient\n");
+        printf("3. Display Patients\n");
+        printf("4. View Next Patient\n");
+        printf("5. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: enqueue(); break;
+            case 2: dequeue(); break;
+            case 3: display(); break;
+            case 4: peek(); break;
+            case 5: return 0;
+            default: printf("Invalid choice!\n");
+        }
+    }
+}
