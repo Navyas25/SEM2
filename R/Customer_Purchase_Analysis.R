@@ -1,46 +1,106 @@
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("readr")
+
 library(ggplot2)
+library(dplyr)
+library(readr)
 
-set.seed(123)
+data <- read.csv(file.choose())
 
-n <- 100
-
-data <- data.frame(
-  id = 1:n,
-  amount = round(rnorm(n, mean = 500, sd = 150), 2)
+colnames(data) <- c(
+  "CustomerID", "Age", "Gender", "ItemPurchased", "Category",
+  "PurchaseAmount", "Location", "Size", "Color", "Season",
+  "ReviewRating", "SubscriptionStatus", "ShippingType",
+  "DiscountApplied", "PreviousPurchases", "PaymentMethod",
+  "Frequency"
 )
+data
 
-data$amount[data$amount < 0] <- abs(data$amount[data$amount < 0])
+data <- data %>%
+  mutate(
+    PurchaseAmount = abs(PurchaseAmount),
+    Age = ifelse(is.na(Age), mean(Age, na.rm = TRUE), Age),
+    PreviousPurchases = ifelse(is.na(PreviousPurchases), 0, PreviousPurchases),
+    Gender = as.factor(Gender),
+    Category = as.factor(Category),
+    Season = as.factor(Season),
+    PaymentMethod = as.factor(PaymentMethod),
+    SubscriptionStatus = as.factor(SubscriptionStatus)
+  )
+data <- data %>%
+  mutate(
+    PurchaseAmount = ifelse(is.na(PurchaseAmount), mean(PurchaseAmount, na.rm = TRUE), PurchaseAmount)
+  )
 
-data$segment <- ifelse(data$amount < 400, "Low",
-                       ifelse(data$amount <= 700, "Medium", "High"))
+data <- data %>%
+  mutate(
+    Segment = case_when(
+      PurchaseAmount < quantile(PurchaseAmount, 0.33, na.rm = TRUE) ~ "Low",
+      PurchaseAmount < quantile(PurchaseAmount, 0.66, na.rm = TRUE) ~ "Medium",
+      TRUE ~ "High"
+    )
+  )
 
 summary(data)
 
-mean(data$amount)
-median(data$amount)
-sd(data$amount)
+mean(data$PurchaseAmount)
+median(data$PurchaseAmount)
+sd(data$PurchaseAmount)
 
-ggplot(data, aes(x = amount)) +
+ggplot(data, aes(x = PurchaseAmount)) +
   geom_histogram(binwidth = 50, fill = "blue", color = "black")
 
-ggplot(data, aes(x = segment, y = amount)) +
-  geom_boxplot(fill = "orange")
+ggplot(data, aes(x = Segment, y = PurchaseAmount, fill = Segment)) +
+  geom_boxplot()
 
-table(data$segment)
+ggplot(data, aes(x = Age, y = PurchaseAmount)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm")
 
-aggregate(amount ~ segment, data = data, mean)
+cor(data$PurchaseAmount, data$Age)
 
-data2 <- data.frame(
-  id = 1:n,
-  amount = data$amount,
-  visits = sample(1:20, n, replace = TRUE)
-)
+ggplot(data, aes(x = PreviousPurchases, y = PurchaseAmount)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm")
 
-cor(data2$amount, data2$visits)
+cor(data$PurchaseAmount, data$PreviousPurchases)
 
-model <- lm(amount ~ visits, data = data2)
+ggplot(data, aes(x = Category, y = PurchaseAmount, fill = Category)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(data %>% group_by(Category) %>% summarise(avg = mean(PurchaseAmount)),
+       aes(x = reorder(Category, avg), y = avg)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip()
+
+ggplot(data, aes(x = Season, y = PurchaseAmount, fill = Season)) +
+  geom_boxplot()
+
+ggplot(data %>% group_by(Season) %>% summarise(avg = mean(PurchaseAmount)),
+       aes(x = Season, y = avg, fill = Season)) +
+  geom_bar(stat = "identity")
+
+ggplot(data, aes(x = PaymentMethod, y = PurchaseAmount, fill = PaymentMethod)) +
+  geom_boxplot()
+
+ggplot(data %>% group_by(PaymentMethod) %>% summarise(avg = mean(PurchaseAmount)),
+       aes(x = PaymentMethod, y = avg, fill = PaymentMethod)) +
+  geom_bar(stat = "identity")
+
+model <- lm(PurchaseAmount ~ Age + PreviousPurchases + Gender + Category + Season + PaymentMethod + SubscriptionStatus, data = data)
 
 summary(model)
+
+data$Predicted <- predict(model, data)
+
+ggplot(data, aes(x = PurchaseAmount, y = Predicted)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+aggregate(PurchaseAmount ~ Segment, data = data, mean)
+table(data$Segment)
 
 ggplot(data2, aes(x = visits, y = amount)) +
   geom_point() +
