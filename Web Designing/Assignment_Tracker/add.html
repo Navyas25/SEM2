@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Assignment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Tracker</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="add.html">Add</a>
+  <a href="list.html">Assignments</a>
+  <button onclick="toggleTheme()">Toggle Theme</button>
+</div>
+
+<div class="main">
+  <h1>Add Assignment</h1>
+
+  <div class="form">
+    <input type="text" id="title" placeholder="Title">
+
+    <select id="subject">
+      <option value="">Select Subject</option>
+      <option>Computer Networks</option>
+      <option>Web Designing</option>
+      <option>DSA</option>
+      <option>Communication Skills</option>
+      <option>Probability and Statistics</option>
+      <option>R Programming</option>
+      <option>EVS</option>
+    </select>
+
+    <input type="date" id="deadline">
+
+    <button onclick="addAssignment()">Add</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
